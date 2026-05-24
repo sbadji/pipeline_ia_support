@@ -1,49 +1,62 @@
 import time
-from typing import Callable, Any
+import random
+from typing import Callable, Any, Generator
 
 def track_performance(func: Callable[..., Any]) -> Callable[..., Any]:
-    """
-    Décorateur mesurant le temps d'exécution d'une fonction de traitement.
-    Utile pour monitorer la latence des appels API LLM (OpenAI, Mistral, etc.).
-    """
+    """Décorateur mesurant le temps d'exécution d'une fonction de traitement."""
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         print(f"\n📢 [LOG] Début d'exécution : {func.__name__}")
         start_time = time.time()
-        
-        # Exécution de la routine principale
         result = func(*args, **kwargs)
-        
         end_time = time.time()
-        execution_time = end_time - start_time
-        print(f"⏱️ [PERF] Tâche complétée en {execution_time:.2f} secondes.")
+        print(f"⏱️ [PERF] Tâche complétée en {end_time - start_time:.2f} secondes.")
         return result
     return wrapper
 
-import random  # On importe random pour simuler une panne aléatoire
+# ⚙️ NOTRE GÉNÉRATEUR (Le flux d'e-mails de support)
+def email_streamer(nombre_emails: int) -> Generator[dict[str, str], None, None]:
+    """
+    Générateur simulant un flux continu d'e-mails de support entrants.
+    Utilise 'yield' pour distribuer les e-mails un par un sans surcharger la RAM.
+    """
+    for i in range(1, nombre_emails + 1):
+        # Simulation d'une attente de réception d'e-mail
+        time.sleep(0.5) 
+        
+        # On distribue (yield) l'e-mail actuel sous forme de dictionnaire
+        yield {
+            "id": f"TICKET-{i:04d}",
+            "sujet": f"Panne technique ou anomalie de flux numéro {i}",
+            "expediteur": f"utilisateur.{i}@renault-client.com"
+        }
 
 @track_performance
-def fetch_and_analyze_support_email() -> None:
-    """
-    Simule la récupération et l'analyse d'un ticket de support par un LLM.
-    Intègre une gestion des erreurs (Error Handling) en cas de panne de l'API.
-    """
-    print("🤖 Connexion à l'API du modèle d'IA principal...")
-    time.sleep(1)
+def analyze_ticket(ticket: dict[str, str]) -> None:
+    """Analyse un ticket unique avec gestion des erreurs intégrée."""
+    print(f"📥 Réception du {ticket['id']} de {ticket['expediteur']}")
+    print(f"🤖 Analyse du contenu : '{ticket['sujet']}'")
     
     try:
-        # Simuler une chance sur deux que l'API principale crash (Timeout ou Rate Limit)
-        if random.choice([True, False]):
-            raise ConnectionError("Le serveur d'IA principal ne répond pas (Timeout 504).")
+        # Simulation d'une panne d'API aléatoire (1 chance sur 3)
+        if random.choice([True, False, False]):
+            raise ConnectionError("Timeout de l'API principale du LLM.")
             
-        print("✅ Analyse de l'IA complétée avec succès par le modèle principal.")
+        print(f"✅ {ticket['id']} : Analyse complétée par l'IA principale.")
         
     except ConnectionError as error:
-        # Plan de continuité : On attrape la panne et on bascule sur le modèle de secours
-        print(f"🚨 [ERROR] Échec critique : {error}")
-        print("🔄 Bascule automatique sur le plan B : Exécution via le modèle de secours local...")
-        time.sleep(1)
-        print("✅ Analyse complétée avec succès par le modèle de secours.")
+        print(f"🚨 [ERROR] {ticket['id']} - Échec : {error}")
+        print(f"🔄 [FALLBACK] {ticket['id']} - Traitement réussi par le LLM de secours local.")
 
-# Point d'entrée du script pour test local
+# 🚀 POINT D'ENTRÉE DU SYSTEME
 if __name__ == "__main__":
-    fetch_and_analyze_support_email()
+    print("🚀 DÉMARRAGE DU PIPELINE DE PRODUCTION EN FLUX CONTINU")
+    
+    # On initialise notre robinet pour générer 3 e-mails
+    flux_tickets = email_streamer(nombre_emails=3)
+    
+    # On consomme le générateur un par un avec une boucle
+    for ticket_entrant in flux_tickets:
+        analyze_ticket(ticket_entrant)
+        print("-" * 50)
+        
+    print("\n🏁 FIN DU TRAITEMENT DU FLUX. STATUT NOMINAL.")
