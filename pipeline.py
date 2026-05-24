@@ -1,25 +1,31 @@
 import time
+from typing import Callable, Any
 
-# Voici notre papier cadeau (Décorateur)
-def chronometrer(fonction_originale):
-    def enveloppe(*args, **kwargs):
-        print(f"\n📢 [LOG] Démarrage de la tâche : {fonction_originale.__name__}")
-        temps_debut = time.time()
+def track_performance(func: Callable[..., Any]) -> Callable[..., Any]:
+    """
+    Décorateur mesurant le temps d'exécution d'une fonction de traitement.
+    Utile pour monitorer la latence des appels API LLM (OpenAI, Mistral, etc.).
+    """
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        print(f"\n📢 [LOG] Début d'exécution : {func.__name__}")
+        start_time = time.time()
         
-        # Ici, on laisse la vraie fonction s'exécuter
-        resultat = fonction_originale(*args, **kwargs)
+        # Exécution de la routine principale
+        result = func(*args, **kwargs)
         
-        temps_fin = time.time()
-        print(f"⏱️ Fin de la tâche. Durée : {temps_fin - temps_debut:.2f} secondes")
-        return resultat
-    return enveloppe
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"⏱️ [PERF] Tâche complétée en {execution_time:.2f} secondes.")
+        return result
+    return wrapper
 
-# Testons-le sur une fausse fonction d'IA qui prend du temps
-@chronometrer
-def appeler_ia_support():
-    print("🤖 L'IA est en train d'analyser l'email de panne...")
-    time.sleep(2) # On simule une attente de 2 secondes
-    print("✅ Analyse terminée !")
+@track_performance
+def fetch_and_analyze_support_email() -> None:
+    """Simule la récupération et l'analyse d'un ticket de support par un LLM."""
+    print("🤖 Requête envoyée au modèle d'IA pour analyse du ticket...")
+    time.sleep(2)  # Simulation du délai d'attente de l'API
+    print("✅ Analyse de l'IA complétée avec succès.")
 
-# On lance le test
-appeler_ia_support()
+# Point d'entrée du script pour test local
+if __name__ == "__main__":
+    fetch_and_analyze_support_email()
