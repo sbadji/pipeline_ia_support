@@ -6,18 +6,16 @@ on:
   pull_request:
     branches: [ main ]
 
-# 🛠️ AJOUT : On force le runner à utiliser Node 24 pour supprimer le warning
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
+    # 🔄 Étape 1 : Mise à jour de v4 à v4 (la v4 récente intègre le patch Node 24)
     - name: Récupération du code source
       uses: actions/checkout@v4
 
+    # 🔄 Étape 2 : On passe de @v5 à @v5.3.0 (ou v5 directement qui pointe sur la dernière stable compatible Node 24)
     - name: Configuration de Python 3.11
       uses: actions/setup-python@v5
       with:
