@@ -1,0 +1,29 @@
+name: Pipeline CI/CD Support IA
+
+# 1. Déclencheur : On lance la machine à chaque push sur la branche principale
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    # On demande à GitHub de nous prêter un serveur virtuel sous Ubuntu (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+    # Étape 1 : On copie le code de ton dépôt sur ce serveur virtuel
+    - name: Récupération du code source
+      uses: actions/checkout@v4
+
+    # Étape 2 : On installe la bonne version de Python sur le serveur
+    - name: Configuration de Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    # Étape 3 : On exécute nos tests unitaires
+    - name: Exécution des tests unitaires
+      run: |
+        python -m unittest test_pipeline.py
